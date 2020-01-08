@@ -8,50 +8,55 @@ import (
 func TestPathFinder(t *testing.T) {
 	node := New()
 	{
-		err := node.Add("/hello/world", "static_path")
+		err := node.Add("/:x", "/:x")
 		if nil != err {
 			fmt.Println("Error: ", err)
 		}
 	}
+	fmt.Println("----")
 	{
-		err := node.Add("/hello/world", "duplicate_path")
-		if nil != err {
-			fmt.Println("Error: ", err)
-		}
-
-	}
-	{
-		err := node.Add("/:x/:y", "dynamic_path")
+		err := node.Add("/:x/:y", "/:x/:y")
 		if nil != err {
 			fmt.Println("Error: ", err)
 		}
 	}
+	fmt.Println("----")
 	{
-		err := node.Add("/hello/world/*", "wildcard_path")
+		err := node.Add("/:x/:y/:z", "/:x/:y/:z")
 		if nil != err {
 			fmt.Println("Error: ", err)
 		}
 	}
+	fmt.Println("----")
 	{
-		leaf, values := node.Find("/hello/world")
-		fmt.Println(leaf, values)
+		err := node.Add("/hello/world", "/hello/world")
+		if nil != err {
+			fmt.Println("Error: ", err)
+		}
 	}
-
+	fmt.Println("----")
 	{
-		leaf, values := node.Find("/goodbye/world")
-		fmt.Println(leaf.Value)
-		fmt.Println(leaf, values)
+		v, e := node.Find("/hello/world")
+		if nil != v && len(e) == 0 {
+			fmt.Println(v.Value)
+		}
 	}
-
 	{
-		leaf, values := node.Find("/hello/goodbye/world")
-		//fmt.Println(leaf.Value)
-		fmt.Println(leaf, values)
+		v, e := node.Find("/x")
+		if nil != v && len(e) != 0 {
+			fmt.Println(v.Value)
+		}
 	}
-
 	{
-		leaf, values := node.Find("/hello/world/wildcard")
-		//fmt.Println(leaf.Value)
-		fmt.Println(leaf, values)
+		v, e := node.Find("/x/y")
+		if nil != v && len(e) != 0 {
+			fmt.Println(v.Value)
+		}
+	}
+	{
+		v, e := node.Find("/x/y/z")
+		if nil != v && len(e) != 0 {
+			fmt.Println(v.Value)
+		}
 	}
 }
