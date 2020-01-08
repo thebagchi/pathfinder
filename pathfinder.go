@@ -92,7 +92,6 @@ func (n *Node) AddSegment(order int, segments, parameters []string, value interf
 	if segment == "" {
 		return errors.New("empty path segment are not allowed")
 	}
-
 	switch segment[0] {
 	case ':':
 		if n.Parameters == nil {
