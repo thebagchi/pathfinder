@@ -1,101 +1,134 @@
 package pathfinder
 
 import (
-	"fmt"
+	"strings"
 	"testing"
 )
 
+var paths = map[string]string{
+	"/":            "/",
+	"/:a":          "/:a",
+	"/:a/:b":       "/:a/:b",
+	"/:a/:b/:c":    "/:a/:b/:c",
+	"/:a/:b/:c/:d": "/:a/:b/:c/:d",
+	"/a":           "/a",
+	"/b":           "/b",
+	"/c":           "/c",
+	"/d":           "/d",
+	"/a/:b":        "/a/:b",
+	"/a/:b/:c":     "/a/:b/:c",
+	"/a/:b/:c/:d":  "/a/:b/:c/:d",
+	"/:a/b":        "/:a/b",
+	"/:a/c":        "/:a/c",
+	"/:a/d":        "/:a/d",
+	"/:a/a":        "/:a/a",
+	"/:a/b/c":      "/:a/b/c",
+	"/:a/c/b":      "/:a/c/b",
+	"/:a/b/c/d":    "/:a/b/c/d",
+	"/:a/b/d/c":    "/:a/b/d/c",
+	"/:a/c/b/d":    "/:a/c/b/d",
+	"/:a/c/d/b":    "/:a/c/d/b",
+	"/:a/d/c/b":    "/:a/d/c/b",
+	"/:a/d/b/c":    "/:a/d/b/c",
+	"/a/b":         "/a/b",
+	"/a/b/:c":      "/a/b/:c",
+	"/a/b/:c/:d":   "/a/b/:c/:d",
+	"/:a/:b/c":     "/:a/:b/c",
+	"/:a/:b/c/d":   "/:a/:b/c/d",
+	"/:a/:b/d/c":   "/:a/:b/d/c",
+	"/a/b/c":       "/a/b/c",
+	"/a/b/c/:d":    "/a/b/c/:d",
+	"/:a/:b/:c/d":  "/:a/:b/:c/d",
+	"/:a/:b/:c/a":  "/:a/:b/:c/a",
+	"/:a/:b/:c/b":  "/:a/:b/:c/b",
+	"/:a/:b/:c/c":  "/:a/:b/:c/c",
+	"/a/b/c/d":     "/a/b/c/d",
+	"/a/b/d/c":     "/a/b/d/c",
+	"/a/c/b/d":     "/a/c/b/d",
+	"/a/c/d/b":     "/a/c/d/b",
+	"/a/d/c/b":     "/a/d/c/b",
+	"/a/d/b/c":     "/a/d/b/c",
+	"/b/c/d/a":     "/b/c/d/a",
+	"/b/c/a/d":     "/b/c/a/d",
+	"/b/d/c/a":     "/b/d/c/a",
+	"/b/d/a/c":     "/b/d/a/c",
+	"/b/a/c/d":     "/b/a/c/d",
+	"/b/a/d/c":     "/b/a/d/c",
+	"/c/d/a/b":     "/c/d/a/b",
+	"/c/d/b/a":     "/c/d/b/a",
+	"/c/b/a/d":     "/c/b/a/d",
+	"/c/b/d/a":     "/c/b/d/a",
+	"/c/a/b/d":     "/c/a/b/d",
+	"/c/a/d/b":     "/c/a/d/b",
+	"/d/a/b/c":     "/d/a/b/c",
+	"/d/a/c/b":     "/d/a/c/b",
+	"/d/b/a/c":     "/d/b/a/c",
+	"/d/b/c/a":     "/d/b/c/a",
+	"/d/c/a/b":     "/d/c/a/b",
+	"/d/c/b/a":     "/d/c/b/a",
+}
+
 func TestPathFinder(t *testing.T) {
 	node := New()
-	{
-		err := node.Add("/:x", "/:x")
+	for key, value := range paths {
+		err := node.Add(key, value)
 		if nil != err {
-			fmt.Println("Error: ", err)
+			t.Error("Failed adding path: ", key)
+			t.Fail()
 		}
 	}
-	fmt.Println("----")
-	{
-		err := node.Add("/:x/:y", "/:x/:y")
-		if nil != err {
-			fmt.Println("Error: ", err)
+	for key, value := range paths {
+		err := node.Add(key, value)
+		if nil == err {
+			t.Error("Duplicate path added: ", key)
+			t.Fail()
 		}
 	}
-	fmt.Println("----")
-	{
-		err := node.Add("/:x/:y/:z", "/:x/:y/:z")
-		if nil != err {
-			fmt.Println("Error: ", err)
+	for key, value := range paths {
+		data, params := node.Find(key)
+		if nil == data {
+			t.Error("Failed finding path: ", key)
+			t.Fail()
+		}
+		if nil != data {
+			if data.Value != value {
+				t.Error("Wrong value found for path: ", key)
+				t.Error("Expected :", value, " Got: ", data.Value)
+				t.Fail()
+			}
+		}
+		if count := strings.Count(key, ":"); count > 0 {
+			if len(params) != count {
+				t.Error("Wrong params found for path: ", key)
+				t.Error("Expected count: ", count, " Got count: ", len(params))
+				t.Fail()
+			}
 		}
 	}
-	fmt.Println("----")
-	{
-		err := node.Add("/hello/world", "/hello/world")
-		if nil != err {
-			fmt.Println("Error: ", err)
+	for key, value := range paths {
+		path := key
+		path = strings.ReplaceAll(path, ":a", "w")
+		path = strings.ReplaceAll(path, ":b", "x")
+		path = strings.ReplaceAll(path, ":c", "y")
+		path = strings.ReplaceAll(path, ":d", "z")
+		data, params := node.Find(path)
+		if nil == data {
+			t.Error("Failed finding path: ", key)
+			t.Fail()
 		}
-	}
-	fmt.Println("----")
-	{
-		err := node.Add("/hello/:x", "/hello/:x")
-		if nil != err {
-			fmt.Println("Error: ", err)
+		if nil != data {
+			if data.Value != value {
+				t.Error("Wrong value found for path: ", key)
+				t.Error("Expected :", value, " Got: ", data.Value)
+				t.Fail()
+			}
 		}
-	}
-	fmt.Println("----")
-	{
-		err := node.Add("/api/:x", "/api/:x")
-		if nil != err {
-			fmt.Println("Error: ", err)
-		}
-	}
-	fmt.Println("----")
-	{
-		err := node.Add("/api/1", "/api/1")
-		if nil != err {
-			fmt.Println("Error: ", err)
-		}
-	}
-	fmt.Println("----")
-	{
-		v, e := node.Find("/hello/world")
-		if nil != v && len(e) == 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/hello/:x")
-		if nil != v && len(e) != 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/api/1")
-		if nil != v && len(e) == 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/api/:x")
-		if nil != v && len(e) != 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/x")
-		if nil != v && len(e) != 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/x/y")
-		if nil != v && len(e) != 0 {
-			fmt.Println(v.Value)
-		}
-	}
-	{
-		v, e := node.Find("/x/y/z")
-		if nil != v && len(e) != 0 {
-			fmt.Println(v.Value)
+		if count := strings.Count(key, ":"); count > 0 {
+			if len(params) != count {
+				t.Error("Wrong params found for path: ", key)
+				t.Error("Expected count: ", count, " Got count: ", len(params))
+				t.Fail()
+			}
 		}
 	}
 }
