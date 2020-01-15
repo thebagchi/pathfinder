@@ -32,6 +32,17 @@ func split(key string) []string {
 	return elements[:n]
 }
 
+func normalize(segments []string) {
+	for n, segment := range segments {
+		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
+			builder := strings.Builder{}
+			builder.WriteByte(':')
+			builder.WriteString(strings.Trim(segment, "{}"))
+			segments[n] = builder.String()
+		}
+	}
+}
+
 func segments(key string) []string {
 	elements := strings.Split(key, "/")
 	if elements[0] == "" {
@@ -40,6 +51,7 @@ func segments(key string) []string {
 	if elements[len(elements)-1] == "" {
 		elements = elements[:len(elements)-1]
 	}
+	normalize(elements)
 	return elements
 }
 
