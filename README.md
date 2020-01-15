@@ -1,2 +1,2 @@
-# pathfinder
-Simple router library
+# PathFinder
+Simple http router library.
