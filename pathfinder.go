@@ -59,13 +59,11 @@ type Node struct {
 	Children   map[string]*Node
 	Parameters *Node
 	Value      *Leaf
-	Count      int
 }
 
 type Leaf struct {
 	Value      interface{}
 	Parameters []string
-	Order      int
 }
 
 func New() *Node {
@@ -78,8 +76,7 @@ func (n *Node) Add(path string, val interface{}) error {
 	if !valid(path) {
 		return errors.New("path must begin with /")
 	}
-	n.Count++
-	return n.AddSegment(n.Count, segments(path), nil, val)
+	return n.AddSegment(segments(path), nil, val)
 }
 
 func (n *Node) AddLeaf(leaf *Leaf) error {
@@ -90,11 +87,10 @@ func (n *Node) AddLeaf(leaf *Leaf) error {
 	return nil
 }
 
-func (n *Node) AddSegment(order int, segments, parameters []string, value interface{}) error {
+func (n *Node) AddSegment(segments, parameters []string, value interface{}) error {
 	if len(segments) == 0 {
 		return n.AddLeaf(
 			&Leaf{
-				Order:      order,
 				Value:      value,
 				Parameters: parameters,
 			},
@@ -109,14 +105,14 @@ func (n *Node) AddSegment(order int, segments, parameters []string, value interf
 		if n.Parameters == nil {
 			n.Parameters = New()
 		}
-		return n.Parameters.AddSegment(order, segments, append(parameters, segment[1:]), value)
+		return n.Parameters.AddSegment(segments, append(parameters, segment[1:]), value)
 	default:
 		edge, ok := n.Children[segment]
 		if !ok {
 			edge = New()
 			n.Children[segment] = edge
 		}
-		return edge.AddSegment(order, segments, parameters, value)
+		return edge.AddSegment(segments, parameters, value)
 	}
 }
 
